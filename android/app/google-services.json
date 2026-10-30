@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "30369729742",
+    "project_id": "blood-bank-locator-820d5",
+    "storage_bucket": "blood-bank-locator-820d5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:30369729742:android:e3cd217328a8cf8c8cd49f",
+        "android_client_info": {
+          "package_name": "com.example.blood_bank_locator"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDK_dr0iNdKTAzlW3HAVCJ1JBM_ij8mDMo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
