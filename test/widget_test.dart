@@ -19,10 +19,10 @@ void main() {
     await tester.pump();
 
     await tester.pumpAndSettle();
-    expect(find.text('Find Blood. Connect Faster.'), findsOneWidget);
+    expect(find.text('Every drop can make a difference.'), findsOneWidget);
 
-    await tester.ensureVisible(find.text('Get Started'));
-    await tester.tap(find.text('Get Started'));
+    await tester.ensureVisible(find.text('Continue'));
+    await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
 
     expect(find.text('Find Blood\nWhen You Need It'), findsOneWidget);

@@ -1,6 +1,7 @@
 import '../models/app_data.dart';
 import 'database.dart';
 import 'session.dart';
+import 'package:flutter/foundation.dart';
 
 class AppState {
   AppState._();
@@ -8,7 +9,7 @@ class AppState {
   static const bloodGroups = AppStateData.bloodGroups;
   static final database = DatabaseService.instance;
   static final session = SessionService.instance;
-  static bool get isDatabaseAvailable => true;
+  static bool get isDatabaseAvailable => !kIsWeb;
 
   static final List<_WebUser> _webUsers = [
     _WebUser(
@@ -57,11 +58,16 @@ class AppState {
   ];
   static final List<BloodRequestRecord> _webRequests = [];
   static final Set<String> _webFavourites = <String>{};
+  static final Map<String, List<String>> _savedWebAccounts = {
+    'seeker': <String>[],
+    'bank': <String>[],
+  };
   static int _nextWebUserId = 3;
   static int _nextWebBankId = 2;
   static int _nextWebRequestId = 1;
 
   static Future<void> initialize() async {
+    if (kIsWeb) return;
     await database.initialize();
     final user = await database.restoreSession();
     if (user == null) return;
@@ -99,6 +105,7 @@ class AppState {
       );
       if (matches.isEmpty) return null;
       final entry = matches.first;
+      _saveWebAccount(entry.user.email, entry.user.role);
       if (entry.user.role == 'bank') {
         final bank = _webBankById(entry.user.bankId!);
         if (bank == null) return null;
@@ -124,12 +131,21 @@ class AppState {
   }
 
   static Future<List<String>> savedAccounts({required String role}) =>
-      database.savedAccounts(role);
+      isDatabaseAvailable
+      ? database.savedAccounts(role)
+      : Future.value(List<String>.from(_savedWebAccounts[role] ?? const []));
 
   static Future<void> removeSavedAccount({
     required String email,
     required String role,
-  }) => database.removeSavedAccount(email, role);
+  }) async {
+    if (!isDatabaseAvailable) {
+      final normalizedEmail = email.trim().toLowerCase();
+      _savedWebAccounts[role]?.remove(normalizedEmail);
+      return;
+    }
+    await database.removeSavedAccount(email, role);
+  }
 
   static Future<String?> registerSeeker({
     required String name,
@@ -149,6 +165,7 @@ class AppState {
       );
       _webUsers.add(_WebUser(user: user, password: password));
       session.setUser(user);
+      _saveWebAccount(normalizedEmail, 'seeker');
       return null;
     }
 
@@ -205,6 +222,7 @@ class AppState {
       _webUsers.add(_WebUser(user: user, password: password));
       _webBanks.add(bank);
       session.setBank(user, bank);
+      _saveWebAccount(normalizedEmail, 'bank');
       return null;
     }
 
@@ -529,7 +547,9 @@ class AppState {
 
   static Future<void> resetSession() async {
     session.clear();
-    await database.clearSession();
+    if (isDatabaseAvailable) {
+      await database.clearSession();
+    }
   }
 
   static BloodBankRecord? _webBankById(int id) {
@@ -559,6 +579,15 @@ class AppState {
     longitude: bank.longitude,
     openingHours: bank.openingHours,
   );
+
+  static void _saveWebAccount(String email, String role) {
+    final normalizedEmail = email.trim().toLowerCase();
+    final accounts = _savedWebAccounts[role];
+    if (accounts == null) return;
+    accounts.remove(normalizedEmail);
+    accounts.insert(0, normalizedEmail);
+    if (accounts.length > 10) accounts.removeLast();
+  }
 
   static bool _toggleWebFavourite(int bankId) {
     final key = '${session.user!.id}:$bankId';

@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
   crypto: ^3.0.7
   path: ^1.9.1
   sqflite: ^2.4.4
